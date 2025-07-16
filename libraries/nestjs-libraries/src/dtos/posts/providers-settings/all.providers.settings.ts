@@ -13,6 +13,7 @@ import { IsIn } from 'class-validator';
 import { MediumSettingsDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/medium.settings.dto';
 import { DevToSettingsDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/dev.to.settings.dto';
 import { HashnodeSettingsDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/hashnode.settings.dto';
+import { XiaohongshuDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/xiaohongshu.dto';
 
 export type ProviderExtension<T extends string, M> = { __type: T } & M;
 export type AllProvidersSettings =
@@ -39,7 +40,8 @@ export type AllProvidersSettings =
   | ProviderExtension<'wrapcast', None>
   | ProviderExtension<'telegram', None>
   | ProviderExtension<'nostr', None>
-  | ProviderExtension<'vk', None>;
+  | ProviderExtension<'vk', None>
+  | ProviderExtension<'xiaohongshu', XiaohongshuDto>;
 
 type None = NonNullable<unknown>;
 
@@ -69,6 +71,7 @@ export const allProviders = (setEmpty?: any) => {
     { value: setEmpty, name: 'telegram' },
     { value: setEmpty, name: 'nostr' },
     { value: setEmpty, name: 'vk' },
+    { value: XiaohongshuDto, name: 'xiaohongshu' },
   ].filter((f) => f.value);
 };
 

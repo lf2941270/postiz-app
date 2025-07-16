@@ -29,6 +29,7 @@ import { FarcasterProvider } from '@gitroom/nestjs-libraries/integrations/social
 import { TelegramProvider } from '@gitroom/nestjs-libraries/integrations/social/telegram.provider';
 import { NostrProvider } from '@gitroom/nestjs-libraries/integrations/social/nostr.provider';
 import { VkProvider } from '@gitroom/nestjs-libraries/integrations/social/vk.provider';
+import { XiaohongshuProvider } from '@gitroom/nestjs-libraries/integrations/social/xiaohongshu.provider';
 
 export const socialIntegrationList: SocialProvider[] = [
   new XProvider(),
@@ -52,6 +53,7 @@ export const socialIntegrationList: SocialProvider[] = [
   new TelegramProvider(),
   new NostrProvider(),
   new VkProvider(),
+  new XiaohongshuProvider(),
   new MediumProvider(),
   new DevToProvider(),
   new HashnodeProvider(),
