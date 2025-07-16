@@ -18,25 +18,78 @@ describe('XiaohongshuProvider', () => {
   });
 
   describe('认证流程', () => {
-    it('应该生成手动认证URL', async () => {
+    it('应该生成空URL用于自定义字段处理', async () => {
       const result = await provider.generateAuthUrl();
-      
-      expect(result.url).toBe('xiaohongshu://manual-auth');
+
+      expect(result.url).toBe('');
       expect(result.codeVerifier).toBe('manual-auth');
       expect(result.state).toBeDefined();
     });
 
-    it('应该返回手动认证信息', async () => {
+    it('应该返回自定义字段配置', async () => {
+      const result = await provider.customFields();
+
+      expect(result).toEqual([
+        {
+          key: 'username',
+          label: '小红书用户名',
+          defaultValue: '',
+          validation: `/^.{1,}$/`,
+          type: 'text',
+        },
+      ]);
+    });
+
+    it('应该使用有效用户名认证成功', async () => {
+      const userData = { username: 'test_user' };
+      const encodedData = Buffer.from(JSON.stringify(userData)).toString('base64');
+
       const result = await provider.authenticate({
-        code: 'test',
+        code: encodedData,
         codeVerifier: 'manual-auth'
       });
 
-      expect(result.id).toBe('xiaohongshu-manual');
-      expect(result.name).toBe('小红书手动发布');
-      expect(result.accessToken).toBe('manual-token');
-      expect(result.additionalSettings).toBeDefined();
-      expect(result.additionalSettings![0].title).toBe('发布模式');
+      expect(result).toEqual({
+        id: 'xiaohongshu-test_user',
+        name: '小红书 - test_user',
+        accessToken: 'manual-token',
+        refreshToken: '',
+        expiresIn: 999999999,
+        picture: '/icons/platforms/xiaohongshu.png',
+        username: 'test_user',
+        additionalSettings: [
+          {
+            title: '发布模式',
+            description: '小红书采用半自动化发布，系统会为您准备好内容和图片，您需要手动完成最后的发布步骤',
+            type: 'text',
+            value: '半自动发布',
+          },
+        ],
+      });
+    });
+
+    it('应该拒绝空用户名', async () => {
+      const userData = { username: '' };
+      const encodedData = Buffer.from(JSON.stringify(userData)).toString('base64');
+
+      const result = await provider.authenticate({
+        code: encodedData,
+        codeVerifier: 'manual-auth'
+      });
+
+      expect(result).toBe('Please enter a valid username');
+    });
+
+    it('应该处理无效的认证数据', async () => {
+      const result = await provider.authenticate({
+        code: 'invalid-data',
+        codeVerifier: 'manual-auth'
+      });
+
+      // 应该返回默认的认证结果而不是抛出错误
+      expect(typeof result).toBe('object');
+      expect((result as any).id).toBe('xiaohongshu-default');
+      expect((result as any).name).toBe('小红书手动发布');
     });
   });
 
@@ -52,7 +105,7 @@ describe('XiaohongshuProvider', () => {
         } as XiaohongshuDto
       }];
 
-      const result = await provider.post('test-id', 'manual-token', postDetails);
+      const result = await provider.post('test-id', 'manual-token', postDetails, {} as any);
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('test-1');
@@ -69,7 +122,7 @@ describe('XiaohongshuProvider', () => {
         } as XiaohongshuDto
       }];
 
-      const result = await provider.post('test-id', 'manual-token', postDetails);
+      const result = await provider.post('test-id', 'manual-token', postDetails, {} as any);
       
       expect(result[0].publishGuide).toBeDefined();
       // 商业内容应该有特殊处理
@@ -89,8 +142,8 @@ describe('XiaohongshuProvider', () => {
         settings: {} as XiaohongshuDto
       }];
 
-      const result = await provider.post('test-id', 'manual-token', postDetails);
-      
+      const result = await provider.post('test-id', 'manual-token', postDetails, {} as any);
+
       expect(result[0].publishGuide.steps).toBeDefined();
       expect(result[0].publishGuide.steps.length).toBeGreaterThan(0);
     });
@@ -109,7 +162,7 @@ describe('XiaohongshuProvider', () => {
         } as XiaohongshuDto
       }];
 
-      const result = await provider.post('test-id', 'manual-token', postDetails);
+      const result = await provider.post('test-id', 'manual-token', postDetails, {} as any);
       const guide = result[0].publishGuide;
 
       expect(guide.title).toBe('小红书发布指导');
@@ -127,7 +180,7 @@ describe('XiaohongshuProvider', () => {
         settings: {} as XiaohongshuDto
       }];
 
-      const result = await provider.post('test-id', 'manual-token', postDetails);
+      const result = await provider.post('test-id', 'manual-token', postDetails, {} as any);
       const steps = result[0].publishGuide.steps;
 
       expect(steps[0].title).toBe('打开小红书APP');

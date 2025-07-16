@@ -9,6 +9,13 @@ export class LocalStorage implements IUploadProvider {
   constructor(private uploadDirectory: string) {}
 
   async uploadSimple(path: string) {
+    // Validate that path is a valid URL
+    try {
+      new URL(path);
+    } catch (error) {
+      throw new Error(`Invalid URL provided for upload: ${path}`);
+    }
+
     const loadImage = await axios.get(path, { responseType: 'arraybuffer' });
     const contentType =
       loadImage?.headers?.['content-type'] ||
